@@ -7,11 +7,14 @@
 
 /******************************
 ******************************/
-ofApp::ofApp()
+ofApp::ofApp(int _BootMode)
 : b_PauseSound(false)
 , OscVj("127.0.0.1", 12350, 12347)
 , OscDmx("127.0.0.1", 12352, 12348)
 , OscAnalyzer("127.0.0.1", 12353, 12354)
+, State(STATE__PLAY)
+, BootMode(BOOTMODE(_BootMode))
+, counter(10) // 十分大きな数. IsTimeToClose()に最初に入った時、余計な処理をしないように.
 {
 }
 
@@ -43,6 +46,11 @@ void ofApp::exit()
 //--------------------------------------------------------------
 void ofApp::setup(){
 	/********************
+	********************/
+	if(BootMode == BOOTMODE_INSTALLATION)	printf("\n> Installation mode\n");
+	else									printf("\n> Demo mode\n");
+	
+	/********************
 	各種基本設定
 	********************/
 	ofSetWindowTitle("Music Player");
@@ -69,32 +77,137 @@ void ofApp::setup(){
 
 //--------------------------------------------------------------
 void ofApp::update(){
-	ofxOscMessage m;
-	m.setAddress("/MusicTime");
-		
-	if(sound.isPlaying()){
+	if(State == STATE__PLAY){
 		/********************
 		********************/
-		ofSoundUpdate();
-		now_ms = sound.getPositionMS();
-		
-		/********************
-		********************/
-		m.addIntArg(now_ms);
-		
+		if(Transition_ifTimeToClose()){
+			/* 遷移時の処理も関数の向こう側で完了してある. */
+		}else{
+			/********************
+			********************/
+			ofxOscMessage m;
+			m.setAddress("/MusicTime");
+				
+			if(sound.isPlaying()){
+				ofSoundUpdate();
+				now_ms = sound.getPositionMS();
+				
+				m.addIntArg(now_ms);
+						
+			}else{
+				now_ms = 0;
+				m.addIntArg(-1);
+			}
+			
+			OscVj.OscSend.sendMessage(m);
+			OscDmx.OscSend.sendMessage(m);
+		}
 		
 	}else{
-		/********************
-		********************/
-		now_ms = 0;
-		
-		/********************
-		********************/
-		m.addIntArg(-1);
+		if(Transition_ifTimeToOpen()){
+			/* 遷移時の処理も関数の向こう側で完了してある. */
+		}
 	}
+}
+
+/******************************
+******************************/
+bool ofApp::Transition_ifTimeToClose()
+{
+	ofxOscMessage m;
+	
+	if(BootMode == BOOTMODE_DEMO){
+		if(counter < 3){
+			counter++;
+			Process_CloseToOpen();
+		}
+		return false;
+		
+	}else{
+		int s = ofGetSeconds();
+		int m = ofGetMinutes();
+		int h = ofGetHours();
+		
+		if( (h == 16) && (m == 41) ){
+			State = STATE__STOP;
+			counter = 0;
+			
+			Process_OpenToClose();
+			
+			return true;
+			
+		}else{
+			return false;
+		}
+	}
+}
+
+/******************************
+******************************/
+bool ofApp::Transition_ifTimeToOpen()
+{
+    int s = ofGetSeconds();
+    int m = ofGetMinutes();
+    int h = ofGetHours();
+	
+	if( (h == 9) && (m == 0) ){
+		State = STATE__PLAY;
+		counter = 0;
+		
+		Process_CloseToOpen();
+		
+		return true;
+		
+	}else{
+		if(counter < 3){
+			counter++;
+			Process_OpenToClose();
+		}
+		return false;
+	}
+}
+
+/******************************
+******************************/
+void ofApp::Process_OpenToClose()
+{
+	ofxOscMessage m;
+	
+	/********************
+	********************/
+	m.setAddress("/Quit");
+	m.addIntArg(1);
 	
 	OscVj.OscSend.sendMessage(m);
+	
+	/********************
+	********************/
+	m.setAddress("/Stop");
+	m.addIntArg(1);
+	
 	OscDmx.OscSend.sendMessage(m);
+	
+	/********************
+	********************/
+	if(sound.isPlaying()) sound.stop();
+}
+
+/******************************
+******************************/
+void ofApp::Process_CloseToOpen()
+{
+	ofxOscMessage m;
+	
+	/********************
+	********************/
+	m.setAddress("/Start");
+	m.addIntArg(1);
+	
+	OscDmx.OscSend.sendMessage(m);
+	
+	/********************
+	********************/
+	if(!sound.isPlaying()) sound.play();
 }
 
 /******************************
@@ -128,11 +241,23 @@ void ofApp::draw_time()
 	*/
 }
 
+/******************************
+******************************/
+void ofApp::draw_NowStopping()
+{
+	/********************
+	********************/
+	ofSetColor(255, 255, 255);
+	
+	font.drawString("Now Sopping", 10, 50);
+}
+
 //--------------------------------------------------------------
 void ofApp::draw(){
 	ofBackground(30);
 	
-	draw_time();
+	if(State == STATE__PLAY)	draw_time();
+	else						draw_NowStopping();
 }
 
 //--------------------------------------------------------------

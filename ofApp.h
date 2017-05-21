@@ -142,8 +142,22 @@ private:
 		HEIGHT = 100,
 	};
 	
+	enum STATE{
+		STATE__PLAY,
+		STATE__STOP,
+	};
+	
+	enum BOOTMODE{
+		BOOTMODE_INSTALLATION,
+		BOOTMODE_DEMO,
+	};
+	
 	/****************************************
 	****************************************/
+	BOOTMODE BootMode;
+	STATE State;
+	int counter;
+	
 	ofTrueTypeFont font;
 	
 	ofSoundPlayer sound;
@@ -159,11 +173,17 @@ private:
 	/****************************************
 	****************************************/
 	void draw_time();
+	void draw_NowStopping();
+	
+	bool Transition_ifTimeToClose();
+	bool Transition_ifTimeToOpen();
+	void Process_OpenToClose();
+	void Process_CloseToOpen();
 
 public:
 	/****************************************
 	****************************************/
-	ofApp();
+	ofApp(int _BootMode);
 	~ofApp();
 	void exit();
 	
