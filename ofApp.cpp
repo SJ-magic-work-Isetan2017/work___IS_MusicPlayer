@@ -54,7 +54,7 @@ void ofApp::setup(){
 	各種基本設定
 	********************/
 	ofSetWindowTitle("Music Player");
-	ofSetFrameRate(60);
+	ofSetFrameRate(30);
 	ofSetWindowShape(WIDTH, HEIGHT);
 	ofSetEscapeQuitsApp(false);
 	
@@ -114,13 +114,7 @@ void ofApp::update(){
 ******************************/
 bool ofApp::Transition_ifTimeToClose()
 {
-	ofxOscMessage m;
-	
 	if(BootMode == BOOTMODE_DEMO){
-		if(counter < 3){
-			counter++;
-			Process_CloseToOpen();
-		}
 		return false;
 		
 	}else{
@@ -128,7 +122,7 @@ bool ofApp::Transition_ifTimeToClose()
 		int m = ofGetMinutes();
 		int h = ofGetHours();
 		
-		if( (h == 16) && (m == 41) ){
+		if( (h == 20) && (m == 5) ){
 			State = STATE__STOP;
 			counter = 0;
 			
@@ -137,6 +131,10 @@ bool ofApp::Transition_ifTimeToClose()
 			return true;
 			
 		}else{
+			if(counter < 3){
+				counter++;
+				Process_CloseToOpen();
+			}
 			return false;
 		}
 	}
@@ -150,7 +148,7 @@ bool ofApp::Transition_ifTimeToOpen()
     int m = ofGetMinutes();
     int h = ofGetHours();
 	
-	if( (h == 9) && (m == 0) ){
+	if( (h == 10) && (m == 25) ){
 		State = STATE__PLAY;
 		counter = 0;
 		
@@ -182,7 +180,7 @@ void ofApp::Process_OpenToClose()
 	
 	/********************
 	********************/
-	m.setAddress("/Stop");
+	m.setAddress("/Quit");
 	m.addIntArg(1);
 	
 	OscDmx.OscSend.sendMessage(m);
@@ -196,17 +194,6 @@ void ofApp::Process_OpenToClose()
 ******************************/
 void ofApp::Process_CloseToOpen()
 {
-	ofxOscMessage m;
-	
-	/********************
-	********************/
-	m.setAddress("/Start");
-	m.addIntArg(1);
-	
-	OscDmx.OscSend.sendMessage(m);
-	
-	/********************
-	********************/
 	if(!sound.isPlaying()) sound.play();
 }
 
