@@ -143,6 +143,8 @@ private:
 	};
 	
 	enum STATE{
+		STATE__BOOTCHECK_PLAY,
+		
 		STATE__PLAY,
 		STATE__STOP,
 	};
@@ -154,7 +156,6 @@ private:
 	
 	/****************************************
 	****************************************/
-	BOOTMODE BootMode;
 	STATE State;
 	int counter;
 	
@@ -163,6 +164,9 @@ private:
 	ofSoundPlayer sound;
 	int now_ms;
 	bool b_PauseSound;
+	
+	bool b_ScheduleMode;
+	STATE FirstState;
 	
 	/********************
 	********************/
@@ -179,11 +183,13 @@ private:
 	bool Transition_ifTimeToOpen();
 	void Process_OpenToClose();
 	void Process_CloseToOpen();
+	
+	void UpdateSound_SendMusicTime();
 
 public:
 	/****************************************
 	****************************************/
-	ofApp(int _BootMode);
+	ofApp();
 	~ofApp();
 	void exit();
 	
