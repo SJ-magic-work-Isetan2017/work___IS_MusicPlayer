@@ -131,7 +131,7 @@ bool ofApp::Transition_ifTimeToClose()
 	int m = ofGetMinutes();
 	int h = ofGetHours();
 	
-	if( (h == 20) && (m == 5) ){
+	if( (h == 22) && (m == 0) ){
 		State = STATE__STOP;
 		counter = 0;
 		Process_OpenToClose();
@@ -155,8 +155,7 @@ bool ofApp::Transition_ifTimeToOpen()
     int m = ofGetMinutes();
     int h = ofGetHours();
 	
-	// if( (h == 10) && (m == 25) ){
-	if( (h == 15) && (m == 43) ){
+	if( (h == 9) && (m == 30) ){
 		State = STATE__PLAY;
 		counter = 0;
 		Process_CloseToOpen();
